@@ -5,9 +5,7 @@ import java.util.List;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.trees.TypedDependency;
 
-/*
- * 注释是保存注释器结果的数据结构。注释基本上是从注释的键到位的映射，例如解析，词性标记或命名实体标记
- */
+
 public class CoreNLPDemo {
 	private static String parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
 	private static LexicalizedParser lp = LexicalizedParser.loadModel(parserModel);

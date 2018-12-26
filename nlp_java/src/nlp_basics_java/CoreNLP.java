@@ -32,6 +32,10 @@ import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation;
 import edu.stanford.nlp.util.CoreMap;
 import edu.stanford.nlp.util.PropertiesUtils;
 
+/*
+ * 注释是保存注释器结果的数据结构。注释基本上是从注释的键到位的映射，例如解析，词性标记或命名实体标记
+ */
+
 public class CoreNLP {
 	public static void annotation_one(){
 		PrintWriter out= new PrintWriter(System.out);
