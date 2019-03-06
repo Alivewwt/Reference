@@ -8,7 +8,6 @@ class GraphConvLayer(Layer):
     def __init__(self, num_inputs,
                  num_units,
                  num_labels,
-                 batch_size=50,
                  in_arcs=True,
                  out_arcs=True,
                  dropout=0.,
@@ -139,7 +138,7 @@ class GraphConvLayer(Layer):
         same_input = K.dot(input0, self.W_self_loop)
         same_input=tf.reshape(same_input,(batch_size,seq_len,-1))
         same_input=tf.reshape(same_input,(batch_size, seq_len,1, tf.shape(self.W_self_loop)[1]))
-        #W_self_loop_gate 10*1
+
         same_input_gate = K.dot(input0, self.W_self_loop_gate)
         same_input_gate=tf.reshape(same_input_gate,(batch_size,seq_len))
         same_input_gate=tf.reshape(same_input_gate,(batch_size,seq_len,-1))
