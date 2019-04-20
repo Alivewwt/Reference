@@ -56,7 +56,7 @@ JDK1.8 之前 HashMap 底层是 **数组和链表** 结合在一起使用也就�
 
 所谓"拉链法"就是：将链表和数组相结合。也就是说创建一个链表数组，数组中每一格就是一个链表。若遇到哈希冲突，则将冲突的值加到链表中。
 
-![1](/img/collection/1.png)
+![1](/img/collections/1.png)
 
 **JDK1.8之后**
 
@@ -86,7 +86,7 @@ JDK1.8 之前 HashMap 底层是 **数组和链表** 结合在一起使用也就�
 
 如果你看过 HashSet 源码的话就应该知道：HashSet 底层就是基于 HashMap 实现的。（HashSet 的源码非常非常少，因为除了 clone() 方法、writeObject()方法、readObject()方法是 HashSet 自己不得不实现之外，其他方法都是直接调用 HashMap 中的方法。）
 
-![2](/img/collection/2.png)
+![2](/img/collections/2.png)
 
 #### ConcurrentHashMap和Hashtable的区别
 
@@ -97,15 +97,15 @@ ConcurrentHashMap和Hashtable的区别主要体现在实现线程安全的方式
 
 HashTable
 
-![3](/img/collection/3.png)
+![3](/img/collections/3.png)
 
 JDK1.7的ConcurrentHashMap:
 
-![4](/img/collection/4.png)
+![4](/img/collections/4.png)
 
 **JDK1.8的ConcurrentHashMap**
 
-![5](/img/collection/5.png)
+![5](/img/collections/5.png)
 
 #### ConcurrentHashMap线程安全的具体实现方式
 
