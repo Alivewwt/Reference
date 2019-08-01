@@ -44,7 +44,7 @@ def load_data_and_labels(positive_data_file, negative_data_file):
 	return [x_text, y]
 
 #数据对齐
-def pad_sentences(sentences,padding_word="padd"):
+def pad_sentences(sentences,padding_word="pad"):
 	seq_length = max(len(x.split(" ")) for x in sentences)
 	print("max seq_length",seq_length)
 	padded_sentence = []
@@ -65,7 +65,7 @@ def build_vocab(sentences):
 				vocabs[word] = vocabs.get(word,0)+1
 		id2word = {i+2:j for i,j in enumerate(vocabs)} # 0: mask, 1: padding
 		id2word[0] = 'mask'
-		id2word[1] = 'padd'
+		id2word[1] = 'pad'
 		word2id = {j:i for i,j in id2word.items()}
 		json.dump([id2word, word2id], open('./all_word_me.json', 'w'))
 	
@@ -77,7 +77,7 @@ def build_vocab(sentences):
 def build_input(sentences,label,vocabs):
 	data = [] 
 	for sen in sentences:
-		x = [vocabs[word if word in vocabs else "padd"]for word in sen]
+		x = [vocabs[word if word in vocabs else "pad"]for word in sen]
 		data.append(x)
 	np.array(data,dtype='int32')
 	y = np.array(label,dtype='int32')
@@ -90,8 +90,12 @@ def load_wv(id2word):
 	c_zeros = 0
 	n_words = len(id2word)
 	pre_trained = KeyedVectors.load_word2vec_format(embeddingspath,binary=True,unicode_errors='ignore')
-	wordEmbeddings = np.zeros((len(id2word)+1,300));
+	wordEmbeddings = np.zeros((len(id2word),300));
 	for idx,word in id2word.items():
+		if(idx==0):
+			wordEmbeddings[idx] = np.random.uniform(-1,1,300)
+		if(idx==1):
+			wordEmbeddings[idx] = np.zeros(300)
 		if word in pre_trained:
 			wordEmbeddings[idx] = pre_trained[word]
 			c_found+=1
