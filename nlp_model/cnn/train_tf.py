@@ -76,7 +76,7 @@ def preprocess():
 
     print("Vocabulary Size: {:d}".format(len(vocab_processor.vocabulary_)))
     print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_dev)))
-    return x_train, y_train, vocab_processor, x_dev, y_dev
+    return x_train, y_train, vocab_processor, x_dev, y_dev,pre_weights
 
 def train(x_train, y_train, vocab_processor, x_dev, y_dev):
     # Training
