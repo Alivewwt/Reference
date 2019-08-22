@@ -45,7 +45,7 @@ def load_data_and_labels(positive_data_file, negative_data_file):
 
 #数据对齐
 def pad_sentences(sentences,padding_word="pad"):
-	seq_length = max(len(x.split(" ")) for x in sentences)
+	seq_length = max[len(x.split(" ")) for x in sentences]
 	print("max seq_length",seq_length)
 	padded_sentence = []
 	for i,sen in enumerate(sentences):
