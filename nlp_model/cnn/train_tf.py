@@ -78,7 +78,7 @@ def preprocess():
     print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_dev)))
     return x_train, y_train, vocab_processor, x_dev, y_dev,pre_weights
 
-def train(x_train, y_train, vocab_processor, x_dev, y_dev):
+def train(x_train, y_train, vocab_processor, x_dev, y_dev,pre_weights):
     # Training
     # ==================================================
 
@@ -197,7 +197,7 @@ def train(x_train, y_train, vocab_processor, x_dev, y_dev):
 
 def main(argv=None):
     x_train, y_train, vocab_processor, x_dev, y_dev ,pre_weights= preprocess()
-    train(x_train, y_train, vocab_processor, x_dev, y_dev)
+    train(x_train, y_train, vocab_processor, x_dev, y_dev，pre_weights)
 
 if __name__ == '__main__':
     tf.app.run()
