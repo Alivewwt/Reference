@@ -6,6 +6,7 @@ import datetime
 import data_helpers
 from text_cnn import TextCNN
 from tensorflow.contrib import learn
+from data_utils import *
 
 # Parameters
 # ==================================================
@@ -54,11 +55,11 @@ def preprocess():
     #vocab_processor = learn.preprocessing.VocabularyProcessor(max_document_length)
     #x = np.array(list(vocab_processor.fit_transform(x_text)))
     
-    dico,word2id,id2word = data_helps.char_mapping(x_text,True)
-    pre_weights = data_helpers.load_word2vec('glove.6B.100d.txt',id2word,100)
+    dico,word2id,id2word = char_mapping(x_text,True)
+    pre_weights = load_word2vec('glove.6B.100d.txt',id2word,100)
     max_document_length = max([len(x.split(" ")) for x in x_text])
-    x_data = data_helpers.prepare_dataset(x_text,word2id)
-    x = np.array(data_helpers.pad_data(x_data,max_document_length))
+    x_data = prepare_dataset(x_text,word2id)
+    x = np.array(pad_data(x_data,max_document_length))
 
     # Randomly shuffle data
     np.random.seed(10)
