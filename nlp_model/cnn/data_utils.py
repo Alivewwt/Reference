@@ -55,6 +55,13 @@ def pad_sentences(sentences,padding_word="pad"):
 		padded_sentence.append(new_sen)
 	return padded_sentence
 
+def char_mapping(sentences,lower):
+    #获取词的列表
+	chars = [[x.lower() if lower() else x for x in s.split()] for s in sentence]
+    dico = cretae_dico(chars)
+    char_to_id, id_to_char = create_mapping(dico)
+    print("Found %i unique words (%i in total)" %(len(dico),sum(len(x) for x in chats)     
+
 #获得文本的所有词,建立字典
 def build_vocab(sentences):
 	#词典
@@ -64,8 +71,8 @@ def build_vocab(sentences):
 			for word in sen.split(" "):
 				vocabs[word] = vocabs.get(word,0)+1
 		id2word = {i+2:j for i,j in enumerate(vocabs)} # 0: mask, 1: padding
-		id2word[0] = 'mask'
-		id2word[1] = 'pad'
+		id2word[0] = 'pad'
+		id2word[1] = 'mask'
 		word2id = {j:i for i,j in id2word.items()}
 		json.dump([id2word, word2id], open('./all_word_me.json', 'w'))
 	
@@ -83,6 +90,58 @@ def build_input(sentences,label,vocabs):
 	y = np.array(label,dtype='int32')
 	return data,y
 
+def load_word2vec(emb_path, id_to_word, word_dim):
+    """
+    Load word embedding from pre-trained file
+    embedding size must match
+    """
+    new_weights = np.zeors(len(id_to_word),word_dim)
+    print('Loading pretrained embeddings from {}...'.format(emb_path))
+    pre_trained = {}
+    emb_invalid = 0
+    for i, line in enumerate(codecs.open(emb_path, 'r', 'utf-8')):
+        line = line.rstrip().split()
+        if len(line) == word_dim + 1:
+            pre_trained[line[0]] = np.array(
+                [float(x) for x in line[1:]]
+            ).astype(np.float32)
+        else:
+            emb_invalid += 1
+    if emb_invalid > 0:
+        print('WARNING: %i invalid lines' % emb_invalid)
+    c_found = 0
+    c_lower = 0
+    c_zeros = 0
+    n_words = len(id_to_word)
+    # Lookup table initialization
+    for i in range(n_words):
+        word = id_to_word[i]
+        if(i==0):
+            new_wwights[i+1] = np.random.uniform(-0.25,0.25,word_dim)
+        if word in pre_trained:
+            new_weights[i] = pre_trained[word]
+            c_found += 1
+        elif word.lower() in pre_trained:
+            new_weights[i] = pre_trained[word.lower()]
+            c_lower += 1
+        elif re.sub('\d', '0', word.lower()) in pre_trained:    #replace numbers to zero
+            new_weights[i] = pre_trained[
+                re.sub('\d', '0', word.lower())
+            ]
+            c_zeros += 1
+    print('Loaded %i pretrained embeddings.' % len(pre_trained))
+    print('%i / %i (%.4f%%) words have been initialized with '
+          'pretrained embeddings.' % (
+        c_found + c_lower + c_zeros, n_words,
+        100. * (c_found + c_lower + c_zeros) / n_words)
+    )
+    print('%i found directly, %i after lowercasing, '
+          '%i after lowercasing + zero.' % (
+        c_found, c_lower, c_zeros
+    ))
+    return new_weights
+
+
 def load_wv(id2word):
 	#加载向量
 	c_found = 0
@@ -92,10 +151,8 @@ def load_wv(id2word):
 	pre_trained = KeyedVectors.load_word2vec_format(embeddingspath,binary=True,unicode_errors='ignore')
 	wordEmbeddings = np.zeros((len(id2word),300));
 	for idx,word in id2word.items():
-		if(idx==0):
-			wordEmbeddings[idx] = np.random.uniform(-1,1,300)
 		if(idx==1):
-			wordEmbeddings[idx] = np.zeros(300)
+			wordEmbeddings[idx] = np.random.uniform(-1,1,300)
 		if word in pre_trained:
 			wordEmbeddings[idx] = pre_trained[word]
 			c_found+=1
