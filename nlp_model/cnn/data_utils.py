@@ -43,6 +43,31 @@ def load_data_and_labels(positive_data_file, negative_data_file):
 	y = np.concatenate([positive_labels, negative_labels], 0)
 	return [x_text, y]
 
+def create_dico(item_list):
+    #对词列表创建字典
+    assert type(item_list) is list
+    dico = {}
+    for items in item_list:
+        for item in items:
+            if item not in dico:
+                dico[item] = 1
+            else:
+                dico[item] += 1
+    return dico
+
+def create_mapping(dico):
+    """
+    获取word->id 和id->word字典
+    按照词频出现进行排序
+    """
+    sorted_items = sorted(dico.items(), key=lambda x: (-x[1], x[0]))
+    id_to_item = {i+2: v[0] for i, v in enumerate(sorted_items)}
+    id_to_item[0] = "PAD"
+    id_to_item[1] = "UNK"
+    item_to_id = {v: k for k, v in id_to_item.items()}
+    return item_to_id, id_to_item
+
+
 #数据对齐
 def pad_sentences(sentences,padding_word="pad"):
 	seq_length = max[len(x.split(" ")) for x in sentences]
