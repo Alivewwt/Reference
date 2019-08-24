@@ -189,6 +189,25 @@ def load_wv(id2word):
 			c_zeros+=1
 	print("%i found directly, %i after lowercasing, %i after lowercasing + zero." %(c_found,c_lower,c_zeros))
 	return wordEmbeddings
+						  
+def batch_iter(data, batch_size, num_epochs, shuffle=True):
+    """
+    生成一个批次的数据.
+    """
+    data = np.array(data)
+    data_size = len(data)
+    num_batches_per_epoch = int((len(data)-1)/batch_size) + 1
+    for epoch in range(num_epochs):
+        # 将每一轮的数据打乱
+        if shuffle:
+            shuffle_indices = np.random.permutation(np.arange(data_size))
+            shuffled_data = data[shuffle_indices]
+        else:
+            shuffled_data = data
+        for batch_num in range(num_batches_per_epoch):
+            start_index = batch_num * batch_size
+            end_index = min((batch_num + 1) * batch_size, data_size)
+            yield shuffled_data[start_index:end_index]						  
 
 
 if __name__ == '__main__':
