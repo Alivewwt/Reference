@@ -30,7 +30,7 @@ class TextCNN(object):
         with tf.device('/cpu:0'), tf.name_scope("embedding"):
             self.W = tf.get_variable(
                 shape = [vocab_size, embedding_size],
-                embeddings,
+                initializer = tf.constant_initializer(embeddings),
                 name="W")
             self.embedded_chars = tf.nn.embedding_lookup(self.W, self.input_x)
        	pooled_outputs = []
