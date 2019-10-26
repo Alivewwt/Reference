@@ -1,5 +1,6 @@
 # reference 
-notes for nlp,python,java
+simple model for nlp;
+simple exercises for python
 
 
 
