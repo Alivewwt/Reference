@@ -35,8 +35,8 @@ class TextCNN(object):
             self.embedded_chars = tf.nn.embedding_lookup(self.W, self.input_x)
        	pooled_outputs = []
     	for kernel_size in filter_sizes:
-		with.tf.variable_scope("CNN-max-pooling-%s" % kernel_size):
-                	conv = tf.layer.conv1d(self.embedd_chars,num_filters,kernel_size,name='conv')
+		with tf.variable_scope("CNN-max-pooling-%s" % kernel_size):
+                	conv = tf.layers.conv1d(self.embedd_chars,num_filters,kernel_size,name='conv')
             		gmp = tf.reduce_max(conv,reduction_indices=[1],name='gmp')
             		pooled_outputs.append(gmp)
             
