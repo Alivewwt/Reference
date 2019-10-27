@@ -20,9 +20,7 @@ class bilstm(object):
 		lengths = tf.sign(tf.abs(self.x))
 		self.lengths = tf.cast(tf.reduce_sum(lengths,1),tf.int32)
 
-		embedding_matrix = tf.Variable(tf.random_uniform([self.vocab_size,
-														self.embedding_size],-1.0,1.0),
-														name="embedding_W")
+		embedding_matrix = tf.Variable(tf.random_uniform([self.vocab_size,elf.embedding_size],-1.0,1.0),name="embedding_W")
 		self.embedding_input = tf.nn.embedding_lookup(embedding_matrix,self.x)
 
 		lstm_output = self.bi_lstm(self.embedding_input,self.lengths)
@@ -45,10 +43,10 @@ class bilstm(object):
 			for direction in ['forward','backward']:
 				with tf.variable_scope(direction):
 					lstm_cell[direction] = tf.contrib.rnn.LSTMCell(
-										self.hidden_units,
-										use_peepholes=True,
-										initializer=self.initializer,
-										state_is_tuple=True)
+									self.hidden_units,
+									use_peepholes=True,
+									initializer=self.initializer,
+									state_is_tuple=True)
 
 			output,_ = tf.nn.bidirectional_dynamic_rnn(
 							lstm_cell['forward'],
