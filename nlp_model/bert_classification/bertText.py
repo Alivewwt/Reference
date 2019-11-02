@@ -31,7 +31,7 @@ class bertText(object):
 		tvars = tf.trainable_variables()
         # 加载BERT模型
 		(assignment_map, initialized_variable_names) = modeling.get_assignment_map_from_checkpoint(tvars,
-                                                                                                   init_checkpoint)
+                                                                                      init_checkpoint)
 		tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
 		print("**** Trainable Variables ****")
         # 打印加载模型的参数
@@ -65,11 +65,9 @@ class bertText(object):
 		with tf.variable_scope("projects"):
 			w = tf.get_variable(shape=[units,hidden_size],
 								initializer=tf.contrib.layers.xavier_initializer(),
-								
 								name='w')
 			b = tf.get_variable(shape=[hidden_size],
 								initializer = tf.zeros_initializer(),
-								
 								name='b')
 			output = tf.nn.xw_plus_b(bert_inputs,w,b)
 			output = tf.nn.tanh(output)
