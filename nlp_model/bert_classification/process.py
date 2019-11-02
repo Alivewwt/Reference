@@ -34,9 +34,7 @@ def prepare_dataset(sentences,max_sen_len,lower=False):
 	
 	for s in sentences:
 		text = tokenization.convert_to_unicode(s)
-		ids,seg_id,mask_id = convert_single_example(char_line = text,
-														max_sen_len = max_sen_len,
-														tokenizer =tokenizer)
+		ids,seg_id,mask_id = convert_single_example(char_line = text,max_sen_len = max_sen_len,tokenizer =tokenizer)
 		#input_ids.append(ids)
 		#mask_ids.append(mask_id)
 		#segment_ids.append(seg_id)
@@ -114,7 +112,7 @@ if __name__ == '__main__':
 	x_data = prepare_dataset(x,max_sen_len=56,lower=False)
 	for batch_x,batch_y in batch_iter(x_data,y,16):
 		input_ids,mask_ids,segment_ids = batch_x
-		print("=============",len(input_ids))
+		print(len(input_ids))
 		print(input_ids)
 
 		
