@@ -5,6 +5,6 @@
 #### 模型结构
 
 1. bertText.py 是模型的结构文件;
-2. process.py 是数据预处理文件，主要将数据格式转化成bert的输入格式：input_ids，segment_ids,mask_ids;
-3. Train_bert.py 是训练bert的文本分类模型，并将模型保存。
+2. process.py 是数据预处理文件，主要将数据格式转化成bert的输入格式：input_ids，segment_ids，mask_ids;
+3. train_bert.py 是训练bert的文本分类模型，并将模型保存。
 
