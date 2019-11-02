@@ -19,7 +19,7 @@ class bertText(object):
 
 		bert_output = self.bert_embeddings()
 
-		bert_output = tf.nn.dropout(bert_output,self.dropout_keep_prob)
+		bert_output = tf.nn.dropout(bert_output,keep_prob=self.dropout_keep_prob)
 
 		outputs = self.project_layers(self.hidden_size,bert_output)
 
