@@ -87,28 +87,3 @@ class bertText(object):
 
 		return losses,accuracy
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
