@@ -19,6 +19,7 @@ class simModel(object):
 		self.label = tf.placeholder(tf.int32,[None,self.num_classes],name='labels')
 
 		self.dropout_keep = tf.placeholder(tf.float32,name="dropout_keep_prob")
+		self.golbal_step = tf.Variable(0,trainable=False,name="global_step")
 
 		with tf.variable_scope("bert_output") as scope:
 			ab = self.bert_layer(self.ab_input_ids,self.ab_input_masks,self.ab_segment_ids)
@@ -31,7 +32,12 @@ class simModel(object):
 		self.subtract_output = self.ab_output-self.ac_output
 		self.output = tf.nn.dropout(self.subtract_output,self.dropout_keep,name="dropout")
 
+		self.loss,self.acc = self.loss_layer(self.output)
 
+		self.opt = tf.train.AdadeltaOptimizer(1e-3).minimize(self.loss,global_step=self.golbal_step)
+		# opt = tf.train.AdadeltaOptimizer(1e-3)
+		# grads_and_vars = opt.compute_gradients(self.loss)
+		# self.train_op = opt.apply_gradients(grads_and_vars,global_step=self.golbal_step)
 
 
 
@@ -48,6 +54,17 @@ class simModel(object):
 		bert_embeddings = model.get_sequence_output()
 		return bert_embeddings
 
+
+	def loss_layer(self,output):
+		with tf.name_scope("loss"):
+			loss = tf.nn.softmax_cross_entropy_with_logits(labels=self.cls,logits=output)
+			losses = tf.reduce_mean(loss)
+
+		with tf.name_scope("accuracy"):
+			acc = tf.equal(tf.argmax(tf.nn.softmax(output),1),tf.argmax(self.cls,1) )
+			accuracy = tf.reduce_mean(tf.cast(acc,float),name='accuracy')
+
+		return losses,accuracy
 
 
 

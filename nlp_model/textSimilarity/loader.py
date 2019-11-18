@@ -1,10 +1,13 @@
 # encoding=utf-8
 import json
 import logging
-import os
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 import pandas as pd
 import numpy as np
 from bert import tokenization
+import pickle as pkl
+
 
 tokenizer = tokenization.FullTokenizer(vocab_file="chinese_L-12_H-768_A-12/vocab.txt",
 									   do_lower_case=True)
@@ -190,8 +193,9 @@ def prepare_dataset(data,max_seq_length):
 	assert len(text_a)==len(text_b)
 	assert len(text_a)==len(labels)
 
-	for a,b,c,label in zip(text_a,text_b,text_c,labels):
-
+	for i in range(len(text_a)):
+		a, b, c, label = text_a[i],text_b[i],text_c[i],labels[i]
+	#for a,b,c,label in zip(text_a,text_b,text_c,labels):
 		inputex = InputExample(a,b,c,label)
 		ab,ac = inputex.to_two_pair_feature(tokenizer,max_seq_length)
 
@@ -202,6 +206,8 @@ def prepare_dataset(data,max_seq_length):
 		ac_input_ids.append(ac.input_ids)
 		ac_input_masks.append(ac.input_mask)
 		ac_input_segments.append(ac.segment_ids)
+		if i%100==0:
+			logger.info("has been finished %d examples"%(i))
 
 	text_abs+=[ab_input_ids,ab_input_masks,ab_input_segments]
 	text_acs+=[ac_input_ids,ac_input_masks,ac_input_segments]
@@ -248,14 +254,17 @@ if __name__ == '__main__':
 		json.dump([train_data.text_a_list,train_data.text_b_list,
 				   train_data.text_c_list,train_data.label_list],f,indent=4,ensure_ascii=False)
 
-	train_data =train_data[:50]
+	train_data =train_data[:1000]
 
 	test_data = test_data[:50]
 	labels =labels[:50]
 	text_abs,text_acs,train_labels = prepare_dataset(train_data,251)
+	with open("./data/train/train.pkl","wb") as f:
+		pkl.dump([text_abs,text_acs,train_labels],f)
+
 	batches = batch_iter(text_abs,text_acs,train_labels,16)
 	for batch in  batches:
-		ab_input_id, ab_input_mask, ab_seg_ids, ac_input_id, ac_input_mask, ac_seg_ids, label = batch
+		ab_input_id, ab_input_mask, ab_seg_ids, ac_input_id, ac_input_mask, ac_seg_ids,label = batch
 		print(ab_input_id.shape)
 		print(ab_input_id)
 		print(label)
