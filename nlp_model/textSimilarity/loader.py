@@ -212,7 +212,7 @@ def prepare_dataset(data,max_seq_length):
 	text_abs+=[ab_input_ids,ab_input_masks,ab_input_segments]
 	text_acs+=[ac_input_ids,ac_input_masks,ac_input_segments]
 
-	return text_abs,text_acs,labels
+	return text_abs,text_acs,np.eye(2)[labels]
 
 def batch_iter(text_ab, text_ac, labels,batch_size=16):
 	assert len(text_ab) == len(text_ac)
