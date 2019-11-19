@@ -180,21 +180,21 @@ def _truncate_seq_pair(tokens_a: list, tokens_b: list, max_length):
 			tokens_b.pop(0)
 
 def prepare_dataset(data,max_seq_length):
-	text_a,text_b,text_c,labels= data[0],data[1],data[2],data[3]
 
 	text_abs = []
 	text_acs = []
+	labels = []
 	ab_input_ids = []
 	ab_input_masks = []
 	ab_input_segments = []
 	ac_input_ids = []
 	ac_input_masks = []
 	ac_input_segments = []
-	assert len(text_a)==len(text_b)
-	assert len(text_a)==len(labels)
 
-	for i in range(len(text_a)):
-		a, b, c, label = text_a[i],text_b[i],text_c[i],labels[i]
+
+	for i in range(len(data)):
+		a, b, c, label = data[i][0],data[i][1],data[i][2],data[i][3]
+		labels.append(label)
 	#for a,b,c,label in zip(text_a,text_b,text_c,labels):
 		inputex = InputExample(a,b,c,label)
 		ab,ac = inputex.to_two_pair_feature(tokenizer,max_seq_length)
@@ -214,7 +214,7 @@ def prepare_dataset(data,max_seq_length):
 
 	return text_abs,text_acs,np.eye(2)[labels]
 
-def batch_iter(text_ab, text_ac, labels,batch_size=16):
+def batch_iter(text_ab, text_ac,labels,batch_size=16):
 	assert len(text_ab) == len(text_ac)
 	text_ab = np.array(text_ab)
 	text_ac = np.array(text_ac)
@@ -254,16 +254,12 @@ if __name__ == '__main__':
 		json.dump([train_data.text_a_list,train_data.text_b_list,
 				   train_data.text_c_list,train_data.label_list],f,indent=4,ensure_ascii=False)
 
-	train_data =train_data[:1000]
 
-	test_data = test_data[:50]
-	labels =labels[:50]
-	text_abs,text_acs,train_labels = prepare_dataset(train_data,251)
+	text_abs,text_acs,train_labels = prepare_dataset(train_data,256)
 	with open("./data/train/train.pkl","wb") as f:
 		pkl.dump([text_abs,text_acs,train_labels],f)
 
-	batches = batch_iter(text_abs,text_acs,train_labels,16)
-	for batch in  batches:
+	for batch in  batch_iter(text_abs,text_acs,train_labels,16):
 		ab_input_id, ab_input_mask, ab_seg_ids, ac_input_id, ac_input_mask, ac_seg_ids,label = batch
 		print(ab_input_id.shape)
 		print(ab_input_id)
