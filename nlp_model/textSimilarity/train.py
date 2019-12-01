@@ -42,9 +42,7 @@ def create_feed_dict(model,batches,is_training):
 def train():
 	data = load_datatset(1,FLAGS.train_files,flags.test_files,flags.test_labels_files)
 	train_data,test_data,labels = data[0]
-	logger.info("train data:{},test data:{}.,lebels:{}".format(len(train_data),
-													len(test_data),len(labels)))
-
+	logger.info("train data:{},test data:{}.,lebels:{}".format(len(train_data),len(test_data),len(labels)))
 
 	#text_ab,text_ac,simlabels = prepare_dataset(train_data,FLAGS.max_seq_len)
 	text_ab,text_ac,simlabels = pkl.load("./data/train/train.pkl", "rb")
