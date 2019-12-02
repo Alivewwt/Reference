@@ -62,7 +62,7 @@ class simModel(object):
 
 		with tf.name_scope("accuracy"):
 			acc = tf.equal(tf.argmax(tf.nn.softmax(output),1),tf.argmax(self.cls,1) )
-			accuracy = tf.reduce_mean(tf.cast(acc,float),name='accuracy')
+			accuracy = tf.reduce_mean(tf.cast(acc,tf.float32),name='accuracy')
 
 		return losses,accuracy
 
