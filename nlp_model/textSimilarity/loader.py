@@ -191,11 +191,9 @@ def prepare_dataset(data,max_seq_length):
 	ac_input_masks = []
 	ac_input_segments = []
 
-
-	for i in range(len(data)):
-		a, b, c, label = data[i][0],data[i][1],data[i][2],data[i][3]
-		labels.append(label)
-	#for a,b,c,label in zip(text_a,text_b,text_c,labels):
+	text_a,text_b,text_c,text_label  = data.text_a_list,data.text_b_list,data.text_c_list,data.label_list
+	i = 0
+	for a,b,c,label in zip(text_a,text_b,text_c,text_label):
 		inputex = InputExample(a,b,c,label)
 		ab,ac = inputex.to_two_pair_feature(tokenizer,max_seq_length)
 
@@ -206,6 +204,7 @@ def prepare_dataset(data,max_seq_length):
 		ac_input_ids.append(ac.input_ids)
 		ac_input_masks.append(ac.input_mask)
 		ac_input_segments.append(ac.segment_ids)
+		i+=1
 		if i%100==0:
 			logger.info("has been finished %d examples"%(i))
 
@@ -250,9 +249,9 @@ if __name__ == '__main__':
 	train_data,test_data ,labels = datas[0]
 	print(len(train_data),len(test_data),len(labels))
 
-	with open("./data/train/train.json",'w') as f:
-		json.dump([train_data.text_a_list,train_data.text_b_list,
-				   train_data.text_c_list,train_data.label_list],f,indent=4,ensure_ascii=False)
+	# with open("./data/train/train.json",'w') as f:
+	# 	json.dump([train_data.text_a_list,train_data.text_b_list,
+	# 			   train_data.text_c_list,train_data.label_list],f,indent=4,ensure_ascii=False)
 
 
 	text_abs,text_acs,train_labels = prepare_dataset(train_data,256)
