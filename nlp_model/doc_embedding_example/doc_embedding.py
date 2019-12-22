@@ -63,6 +63,14 @@ class Model(object):
                                           self.subtype_inputs, config)
          self.doc_emebedding = self.doc_embedding_layer(self.doc_inputs, self.lstm_dim,
                                           self.length, config)
+         lstm_inputs = tf.nn.dropout(self.embedding,1-self.dropout)
+
+         lstm_outputs,lstm_states = self.biLSTM_layer(lstm_inputs,self.lstm_dim,self.length)
+         lstm_outputs = tf.nn.dropout(lstm_outputs,1-self.dropout)
+
+         self.sen_att_outputs = self.attention(lstm_outputs)
+         self.doc_att_outputs = self.doc_attention(self.doc_emebedding,lstm_states)
+
 
      def embedding_layer(self, char_inputs, seg_inputs, subtype_inputs, config, name=None):
          embedding = []
@@ -127,6 +135,98 @@ class Model(object):
          last_states = tf.reshape(last_states,[self.batch_size,self.seq_nums,self.lstm_dim*2])
          return last_states
 
+     def biLSTM_layer(self,lstm_inputs,lstm_dim,lengths,name=None):
+         with tf.variable_scope('char_BiLSTM',reuse=tf.AUTO_REUSE):
+             lstm_cell = {}
+             for direction in ["forward","backward"]:
+                 with tf.variable_scope(direction):
+                     lstm_cell[direction] = rnn.CoupledInputForgetGateLSTMCell(
+                         lstm_dim,
+                         use_peepholes=True,
+                         initializer= self.initiaizer,
+                         state_is_tuple= True
+                     )
+             (outputs,(encoder_fw_final_state,encoder_bw_final_state))= tf.nn.bidirectional_dynamic_rnn(
+                        lstm_cell["forward"],
+                        lstm_cell["backward"],
+                        lstm_inputs,
+                        dtype=tf.float32,
+                        sequence_length = lengths
+             )
+             # 每句话经过当前cell后会得到一个state，
+             # 经过多少个cell，就有多少个LSTMStateTuple，即每个cell都会输出一个 tuple(c, h)
+             # state中的h跟output 的最后一个时刻的输出是一样的，即：output[:, -1, :] = state[0].h
+             final_state = tf.concat((encoder_fw_final_state.h,encoder_bw_final_state.h),-1)
+             return tf.concat(outputs,-1),final_state
+
+
+     def attention(self,lstm_outputs,name=None):
+
+         def bilinear_attention(source,target):
+             dim1 = int(source.get_shape()[1])
+             seq_size = int(target.get_shape()[1])
+             dim2 = int(target.get_shape()[2] )
+             with tf.variable_scope("att",reuse=tf.AUTO_REUSE):
+                 W = tf.get_variable("att_W",
+                    shape=[dim1,dim2],
+                    dtype=tf.float32,
+                    initializer=self.initiaizer )
+                 source = tf.expand_dims(tf.matmul(source,W),1) #[b,1,dim2]
+                 prod = tf.matmul(source,target,adjoint_b=True) #[b,1,dim2]*[b,s,dim1]
+                 prod = tf.reshape(prod,[-1,seq_size]) #[b,seq_size]
+                 prod = tf.tanh(prod)
+
+                 alpha = tf.nn.softmax(prod)
+                 probs3dim = tf.reshape(alpha,[-1,1,seq_size])
+                 Bout = tf.matmul(probs3dim,target) #[b,1,s]*[b,s,dim2]
+                 Bout2dim = tf.reshape(Bout,[-1,dim2])
+                 return Bout2dim,alpha
+
+         with tf.variable_scope("attention" if not name else name):
+             hidden_dim = self.lstm_dim*2
+             sequence_length = self.num_steps
+             lstm_outputs = tf.reshape(lstm_outputs,[self.batch_size,self.num_steps,hidden_dim])
+             outputs = tf.unstack(tf.transpose(lstm_outputs,[1,0,2]),axis=0)
+             fina_outputs = list()
+             for i in range(sequence_length):
+                 atten_output, P = bilinear_attention(outputs[i],lstm_outputs) #每个词和句子做相似度计算
+                 fina_outputs.append(atten_output)
+
+             attention_outputs = tf.transpose(fina_outputs,[1,0,2])
+             output = tf.reshape(attention_outputs,[self.batch_size,sequence_length,hidden_dim])
+             return output
+
+     def doc_attention(self,doc_embedding,lstm_states,name=None):
+
+         def bilinear_attention(source,target):
+             dim1 = int(source.get_shape()[1])
+             seq_size = int(target.get_shape()[1])
+             dim2 = int(target.get_shape()[2])
+             with tf.variable_scope("doc_attention",reuse=tf.AUTO_REUSE):
+                 W = tf.Variable(tf.truncated_normal([dim1,dim2],0,1.0),tf.float32,name="W_doc_attnetion")
+                 b = tf.Variable(tf.truncated_normal([1],0,1.0),tf.float32,name="b_doc_att")
+
+                 source = tf.expand_dims(tf.matmul(source,W),1) #[b,1,dim2]
+                 prod = tf.add(tf.matmul(source,target,adjoint_b=True),b) #[b,1,dim2]*[b,s,dim2]
+                 prod = tf.reshape(prod,[-1,seq_size])
+                 prod = tf.tanh(prod)
+                 alpha = tf.nn.softmax(prod)
+
+                 prob3dim = tf.reshape(alpha,[-1,1,seq_size]) #[b,1,s]
+                 Bout = tf.matmul(prob3dim,target) #[b,1,s]*[b,s,dim2]
+                 Bout2dim = tf.reshape(Bout,[-1,dim2])
+                 return Bout2dim,alpha
+
+         with tf.variable_scope("doc_attention" if not name else name):
+             hidden_dim = self.lstm_dim*2
+             sequence_length = self.num_steps
+             lstm_states = tf.reshape(lstm_states,[self.batch_size,hidden_dim])
+             atten_output,p = bilinear_attention(lstm_states,doc_embedding)
+             output = tf.reshape(atten_output,[self.batch_size,hidden_dim])
+             output = tf.expand_dims(output,1)
+             output = tf.tile(output,[1,sequence_length,1])
+             return tf.reshape(output,[self.batch_size,self.num_steps,hidden_dim])
+
 
 if __name__ == '__main__':
 
@@ -156,14 +256,12 @@ if __name__ == '__main__':
      # subtype_inputs = tf.Variable(np.reshape(np.arange(160),[4,40]))
      # targets =  tf.Variable(np.reshape(np.arange(160),[4,40]))
 
-     char_inputs = np.random.randint(0,26,(4,40))#batch_size,seq_num
+     char_inputs = np.random.randint(0,26,(4,40))#batch_size,num_steps
      doc_inputs = np.random.randint(0,26,(4,8,40))#batch_size seq_num,num_steps
      seg_inputs = np.random.randint(0,14,(4,40)) #14
      subtype_inputs = np.random.randint(0,51,(4,40)) #51
      targets =  np.random.randint(0,15,(4,40))
 
-     print(char_inputs)
-     print("===========分割线========")
      print(doc_inputs)
      with tf.Session() as sess:
         model = Model(config)
@@ -172,12 +270,15 @@ if __name__ == '__main__':
                      model.doc_inputs: doc_inputs,
                      model.seg_inputs: seg_inputs,
                      model.subtype_inputs: subtype_inputs,
-                     model.targets: targets
+                     model.targets: targets,
+                     model.dropout:0.5
                      }
-        embedding, doc_emebedding= sess.run([model.embedding,model.doc_emebedding],
-            feed_dict=feed_dict)
-        print(embedding)
-        print(doc_emebedding.shape)
-        for v in tf.trainable_variables():
-            print(v)
+        embedding, doc_emebedding,sen_att,doc_att= sess.run([model.embedding,model.doc_emebedding,
+                                              model.sen_att_outputs,model.doc_att_outputs], feed_dict=feed_dict)
+        print(embedding.shape) # 4*40*400
+        print(doc_emebedding.shape) # 4*8*400
+        print("sen attention shape ",sen_att.shape)
+        print("doc attention sahpe ",doc_att.shape)
+        # for v in tf.trainable_variables():
+        #     print(v)
 
