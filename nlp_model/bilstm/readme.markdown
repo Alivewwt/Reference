@@ -29,7 +29,7 @@ time_major = False# false ,输入格式为[batch_size,seq_len,dim],#true，输�
 
 最终的outputs需要使用tf.concat(outputs, 2)将两者合并起来。
 
-outputs_state = (outputs_state_fw， output_state_bw),包含了前向和后向最后的隐藏状态的组成的元祖。outputs_state_fw和output_state_bw的类型都是LSTMStateTuple。LSTMStateTuple由(c, h)组成，分别代表memory cell和hidden state
+outputs_state = (outputs_state_fw， output_state_bw),包含了前向和后向最后的隐藏状态的组成的元组。outputs_state_fw和output_state_bw的类型都是LSTMStateTuple。LSTMStateTuple由(c, h)组成，分别代表memory cell和hidden state
 
 如果还需要用到最后的输出状态，则需要对（outputs_state_fw， output_state_bw）处理:
 
